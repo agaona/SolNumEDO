@@ -1,0 +1,42 @@
+function [y,x]=GL4(ode,x,y0)
+%ode = f
+%Gauss-Legendre orden 4 versión epsilón
+    maxiter=100;
+    h=x(2)-x(1); %Tamaño de paso
+    p=length(y0);
+    n=length(x); 
+    y=y0;
+    sigma=sqrt(eps);
+    if (nargin < 4), tol = []; end;
+    if (isempty(tol)), tol = 1e-6; end;
+    if tol<eps,    tol= 1e-6; end
+    c=[1/2-sqrt(3)/6; 1/2+sqrt(3)/6];
+    b=[1/2; 1/2];
+    A=[1/4,1/4-sqrt(3)/6; 1/4+sqrt(3)/6,1/4];
+    for j=2:n
+        y0=y(:,j-1);Z1t=y0;Z2t=y0;Zt=[Z1t;Z2t];V=Zt; flag=1; niter=0;
+        while (flag & niter<=maxiter)
+            for i=1:2*p
+                ep=zeros(2*p,1);ep(i)=sigma; 
+                ep1=ep(1:p,:);ep2=ep((p+1):(2*p),:);
+                J1(:,i)=([ode(x(1)+c(1)*h,Z1t+ep1) ode(x(1)+c(2)*h,Z2t+ep2)]*[A(1,:)]'-...
+                    [ode(x(1)+c(1)*h,Z1t-ep1) ode(x(1)+c(2)*h,Z2t-ep2)]*[A(1,:)]')/2/sigma;
+    
+                J2(:,i)=([ode(x(1)+c(1)*h,Z1t+ep1) ode(x(1)+c(2)*h,Z2t+ep2)]*[A(2,:)]'-...
+                    [ode(x(1)+c(1)*h,Z1t-ep1) ode(x(1)+c(2)*h,Z2t-ep2)]*[A(2,:)]')/2/sigma;            
+            end
+            J=h*[J1;J2]-eye(2*p);
+            Ztnew=Zt-J\(h*[[ode(x(1)+c(1)*h,Z1t) ode(x(1)+c(2)*h,Z2t)]*[A(1,:)]';...
+                [ode(x(1)+c(1)*h,Z1t) ode(x(1)+c(2)*h,Z2t)]*[A(2,:)]']+V-Zt);
+                niter=niter+1;
+            if norm(Zt-Ztnew)<tol*norm(Zt),
+                Z1t=Zt(1:p,:);Z2t=Zt((p+1):(2*p),:);
+                y(:,j)=[y0+h*[ode(x(1)+c(1)*h,Z1t) ode(x(1)+c(2)*h,Z2t)]*b];
+            flag=0;
+            end
+        Zt=Ztnew;
+%        Z1t=Zt(1:p,:);Z2t=Zt((p+1):(2*p),:);
+%        y(:,j)=[y0+h*[ode(x(i-1)+c(1)*h,Z1t) ode(x(i)+c(2)*h,Z2t)]*b];
+        end
+    end
+end
