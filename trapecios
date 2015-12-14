@@ -1,0 +1,19 @@
+ function [y]=trapos(f,x,y0)
+    %METODO DE LOS TRAPECIOS 
+    %PARA ENCONTRAR LA APROXIMACIÓN A UN Ec. Dif.
+    %Realizar la llamada al método
+    %Primero definimos f
+    %Por ejemplo f=@(x,y) [0 1; -1/4 0]*y
+    %Llamamos al método
+     %[x,y]=trapos(0,1,10,f,[0,1]')
+    %Estas son las equises
+    h=x(2)-x(1); %Tamaño de paso
+    opcion=optimset('Display','off');
+    y=y0(:); %Inicializa
+    n=length(x);
+    for i=2:n
+    xtemp=x(i); xtemp0=x(i-1);ytemp=y(:,i-1);%Define las variables temporales x_n,x_n+1,  y_n 
+    F=@(z) h/2*(f(xtemp0,ytemp)+f(xtemp,z))+ytemp-z;
+    y(:,i)=fsolve(F,ytemp);%Trapecios. 
+    end
+    end
